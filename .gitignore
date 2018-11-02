@@ -1,0 +1,7 @@
+/data/
+/bin/
+/gen/
+/target/
+/.classpath
+/.project
+/.settings/
