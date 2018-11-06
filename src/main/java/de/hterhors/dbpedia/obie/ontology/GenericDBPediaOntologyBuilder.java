@@ -42,24 +42,39 @@ public class GenericDBPediaOntologyBuilder {
 
 	public static Logger log = LogManager.getRootLogger();
 
+	static private EasyNTrippleReader rdfTypReader;
+
 	public static void main(String[] args) throws IOException {
 
-//		File file = new File("data/analyzed/output3-6_SoccerPlayer.txt");
+//		File file1 = new File("data/looseSelectionOutput4To6/Food.txt");
+//		File file2 = new File("data/looseSelectionOutput4To6/Film.txt");
+//		File file3 = new File("data/looseSelectionOutput4To6/Manga.txt");
+//		File file4 = new File("data/looseSelectionOutput4To6/Single.txt");
+		File file5 = new File("data/looseSelectionOutput4To6/ArchitecturalStructure.txt");
+		File file6 = new File("data/looseSelectionOutput4To6/Dam.txt");
 
-//		File file = new File("data/looseSelectionOutput3To6/Manga.txt");
-		File file = new File("data/looseSelectionOutput4To6/Food.txt");
-		
+		rdfTypReader = new EasyNTrippleReader(new File("data/ontology_types.nt"), " ", "#");
+		rdfTypReader.read();
+
 		DBPediaInfoBoxReaderConfig dbPediaConfig = new DBPediaInfoBoxReaderConfig(
 				new File("data/infobox/ontology_properties_sorted.nt"), new File("data/infobox/properties_index.tsv"),
 				"\t");
-		new GenericDBPediaOntologyBuilder(dbPediaConfig,file);
+		
+		DBPediaInfoBoxReader.init(dbPediaConfig);
+		infoBoxReader = DBPediaInfoBoxReader.getInstance();
+
+//		new GenericDBPediaOntologyBuilder(dbPediaConfig, file1);
+//		new GenericDBPediaOntologyBuilder(dbPediaConfig, file2);
+//		new GenericDBPediaOntologyBuilder(dbPediaConfig, file3);
+//		new GenericDBPediaOntologyBuilder(dbPediaConfig, file4);
+		new GenericDBPediaOntologyBuilder(dbPediaConfig, file5);
+		new GenericDBPediaOntologyBuilder(dbPediaConfig, file6);
 	}
 
 	final private Map<Property, Boolean> isFunctionalPropertyCache = new HashMap<>();
 
-	final private DBPediaInfoBoxReader infoBoxReader;
-	final private AnalyzedFileReader resourceReader;
-	final private EasyNTrippleReader rdfTypReader;
+	static private DBPediaInfoBoxReader infoBoxReader;
+	static private AnalyzedFileReader resourceReader;
 
 	final private Set<FlatClassTemplate> flatClassTemplates = new HashSet<>();
 	final private Set<ObjectPropertyTemplate> objectPropertyTemplates = new HashSet<>();
@@ -69,23 +84,18 @@ public class GenericDBPediaOntologyBuilder {
 	 */
 	final private Map<String, NamedIndividualTemplate> namedIndividualTemplates = new HashMap<>();
 
-	public GenericDBPediaOntologyBuilder(	DBPediaInfoBoxReaderConfig dbPediaConfig  ,File resourceFile) throws IOException {
-
-		rdfTypReader = new EasyNTrippleReader(new File("data/ontology_types.nt"), " ", "#");
-		rdfTypReader.read();
+	public GenericDBPediaOntologyBuilder(DBPediaInfoBoxReaderConfig dbPediaConfig, File resourceFile)
+			throws IOException {
 
 		resourceReader = new AnalyzedFileReader(resourceFile);
 		log.info("###############################");
 		log.info("Print read data: ");
 		log.info("Datatype properties:");
 		resourceReader.datatypeProperties.forEach(log::info);
-
+		
 		log.info("Object properties:");
 		resourceReader.objectProperties.forEach(log::info);
 		log.info("###############################");
-	
-		DBPediaInfoBoxReader.init(dbPediaConfig);
-		infoBoxReader = DBPediaInfoBoxReader.getInstance();
 
 		log.info("");
 
@@ -107,7 +117,7 @@ public class GenericDBPediaOntologyBuilder {
 		processMissingClasses(selectedRangeTypes);
 		log.info("");
 
-		File ontologyFile = new File("ontology/gen/" + domainName + "_autoGen_v1.owl");
+		File ontologyFile = new File("ontology/" + domainName + "_autoGen_v1.owl");
 
 		buildAndWriteToFile(ontologyFile);
 	}

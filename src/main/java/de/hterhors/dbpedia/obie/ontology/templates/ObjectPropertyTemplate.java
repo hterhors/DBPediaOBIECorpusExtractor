@@ -12,7 +12,7 @@ public class ObjectPropertyTemplate implements IGOT {
 
 	static {
 		try {
-			objectPropertyTemplate = Files.readAllLines(new File("ontology/templates/objectProperty.otmplt").toPath())
+			objectPropertyTemplate = Files.readAllLines(new File("src/main/resources/ontology/templates/objectProperty.otmplt").toPath())
 					.stream().map(l -> l + "\n").reduce("", String::concat);
 		} catch (IOException e) {
 			e.printStackTrace();

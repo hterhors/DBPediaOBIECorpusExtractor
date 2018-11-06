@@ -1,0 +1,4 @@
+	<owl:DatatypeProperty rdf:about="%s">
+		%s
+		<rdfs:domain rdf:resource="%s"/>
+	</owl:DatatypeProperty>

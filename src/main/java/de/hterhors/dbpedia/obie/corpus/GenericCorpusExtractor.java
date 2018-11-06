@@ -11,6 +11,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.regex.Matcher;
 
 import org.apache.commons.lang3.NotImplementedException;
 import org.apache.logging.log4j.LogManager;
@@ -362,12 +363,18 @@ public abstract class GenericCorpusExtractor<Thing extends IOBIEThing> {
 
 						final String surfaceForm = iterator.next().literal;
 
-						if (!InstanceUtils.contentContainsLiteral(mainResourceWikiPage.text, surfaceForm)) {
+						/**
+						 * TODO: Taking first occurrence, may be wrong.
+						 */
+
+						Matcher m = InstanceUtils.getLiteral(docContent, surfaceForm);
+
+						if (m == null) {
 							log.debug("Wikipage does not contain data for datatype property: " + datatypeProperty);
 							continue;
 						}
 
-						final Integer onset = Integer.valueOf(docContent.indexOf(surfaceForm));
+						final int onset = m.start();
 
 						setOrAddDatatypeValue(thing, datatypeProperty, surfaceForm, onset);
 					}
@@ -417,7 +424,7 @@ public abstract class GenericCorpusExtractor<Thing extends IOBIEThing> {
 	private void setOrAddDatatypeValue(IOBIEThing thing, Property dataProperty, String surfaceForm, Integer onset) {
 		try {
 			log.debug("Interprete value...");
-			final List<IDatatypeInterpretation> interpretations = this.interpreter.interpret(surfaceForm);
+			final List<IDatatypeInterpretation> interpretations = this.interpreter.getPossibleInterpretations(surfaceForm);
 
 			final String interpreted;
 
@@ -432,6 +439,13 @@ public abstract class GenericCorpusExtractor<Thing extends IOBIEThing> {
 			 * Get the field based on the ontology name.
 			 */
 			final Field f = getFieldByOntologyName(dataProperty.propertyName);
+
+			/*
+			 * The field can be null if the ontology as described in owl was modified by
+			 * removing the specific field.
+			 */
+			if (f == null)
+				return;
 
 			final Class<? extends IOBIEThing> genericClassType;
 
@@ -455,6 +469,7 @@ public abstract class GenericCorpusExtractor<Thing extends IOBIEThing> {
 				}
 			}
 		} catch (Exception e) {
+			e.printStackTrace();
 			throw new IllegalStateException("Can not set or add value.");
 		}
 	}

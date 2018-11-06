@@ -18,7 +18,7 @@ public class GenericOntologyTemplate implements IGOT {
 
 	static {
 		try {
-			genericOntologyTemplate = Files.readAllLines(new File("ontology/templates/genericOntology.otmplt").toPath())
+			genericOntologyTemplate = Files.readAllLines(new File("src/main/resources/ontology/templates/genericOntology.otmplt").toPath())
 					.stream().map(l -> l + "\n").reduce("", String::concat);
 		} catch (IOException e) {
 			e.printStackTrace();

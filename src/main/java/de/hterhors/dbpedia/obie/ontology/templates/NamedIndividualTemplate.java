@@ -12,7 +12,7 @@ public class NamedIndividualTemplate implements IGOT {
 
 	static {
 		try {
-			namedIndividualTemplate = Files.readAllLines(new File("ontology/templates/namedIndividual.otmplt").toPath())
+			namedIndividualTemplate = Files.readAllLines(new File("src/main/resources/ontology/templates/namedIndividual.otmplt").toPath())
 					.stream().map(l -> l + "\n").reduce("", String::concat);
 		} catch (IOException e) {
 			e.printStackTrace();

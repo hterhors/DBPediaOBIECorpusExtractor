@@ -15,8 +15,8 @@ public class DatatypePropertyTemplate implements IGOT {
 	static {
 		try {
 			datatypePropertyTemplate = Files
-					.readAllLines(new File("ontology/templates/datatypeProperty.otmplt").toPath()).stream()
-					.map(l -> l + "\n").reduce("", String::concat);
+					.readAllLines(new File("src/main/resources/ontology/templates/datatypeProperty.otmplt").toPath())
+					.stream().map(l -> l + "\n").reduce("", String::concat);
 		} catch (IOException e) {
 			e.printStackTrace();
 			System.exit(1);

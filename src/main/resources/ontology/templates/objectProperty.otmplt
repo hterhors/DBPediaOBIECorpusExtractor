@@ -1,0 +1,5 @@
+	<owl:ObjectProperty rdf:about="%s">
+        %s
+        <rdfs:domain rdf:resource="%s"/>
+        <rdfs:range rdf:resource="%s"/>
+	</owl:ObjectProperty>

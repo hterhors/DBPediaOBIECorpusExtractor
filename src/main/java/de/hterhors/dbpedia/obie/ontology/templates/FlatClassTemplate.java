@@ -14,7 +14,7 @@ public class FlatClassTemplate implements IGOT {
 
 	static {
 		try {
-			flatClassTemplate = Files.readAllLines(new File("ontology/templates/flatClass.otmplt").toPath()).stream()
+			flatClassTemplate = Files.readAllLines(new File("src/main/resources/ontology/templates/flatClass.otmplt").toPath()).stream()
 					.map(l -> l + "\n").reduce("", String::concat);
 		} catch (IOException e) {
 			e.printStackTrace();
