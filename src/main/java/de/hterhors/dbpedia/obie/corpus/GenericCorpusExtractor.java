@@ -41,7 +41,7 @@ import de.hterhors.obie.core.ontology.interfaces.IOBIEThing;
 import de.hterhors.obie.core.tools.corpus.OBIECorpus;
 import de.hterhors.obie.core.tools.corpus.OBIECorpus.Instance;
 import de.hterhors.obie.ml.dtinterpreter.IDatatypeInterpretation;
-import de.hterhors.obie.ml.dtinterpreter.IInterpreter;
+import de.hterhors.obie.ml.dtinterpreter.IDatatypeInterpreter;
 import de.hterhors.obie.ml.utils.ReflectionUtils;
 
 /**
@@ -61,9 +61,9 @@ import de.hterhors.obie.ml.utils.ReflectionUtils;
  * 
  * @author hterhors
  *
- * @param <Thing> the IOBIEThing of the OBIE-ontology.
+ * @param <T> the IOBIEThing of the OBIE-ontology.
  */
-public abstract class GenericCorpusExtractor<Thing extends IOBIEThing> {
+public class GenericCorpusExtractor<T extends IOBIEThing> {
 
 	/**
 	 * The root logger.
@@ -83,7 +83,7 @@ public abstract class GenericCorpusExtractor<Thing extends IOBIEThing> {
 	/**
 	 * A datatype interpreter that is specific for the provided ontology.
 	 */
-	private final IInterpreter<Thing> interpreter;
+	private final IDatatypeInterpreter<T> interpreter;
 
 	/**
 	 * the instance restriction filter filters all instances that does not match
@@ -144,7 +144,7 @@ public abstract class GenericCorpusExtractor<Thing extends IOBIEThing> {
 	 * @param wikiPageConfig
 	 * @throws Exception
 	 */
-	public GenericCorpusExtractor(AbstractOntologyEnvironment ontologyEnvironment, IInterpreter<Thing> interpreter,
+	public GenericCorpusExtractor(AbstractOntologyEnvironment ontologyEnvironment, IDatatypeInterpreter<T> interpreter,
 			Class<? extends IOBIEThing> mainResourceClass, DBPediaInfoBoxReaderConfig infoBoxConfig,
 			WikiPageReaderConfig wikiPageConfig) throws Exception {
 
@@ -424,7 +424,8 @@ public abstract class GenericCorpusExtractor<Thing extends IOBIEThing> {
 	private void setOrAddDatatypeValue(IOBIEThing thing, Property dataProperty, String surfaceForm, Integer onset) {
 		try {
 			log.debug("Interprete value...");
-			final List<IDatatypeInterpretation> interpretations = this.interpreter.getPossibleInterpretations(surfaceForm);
+			final List<IDatatypeInterpretation> interpretations = this.interpreter
+					.getPossibleInterpretations(surfaceForm);
 
 			final String interpreted;
 
