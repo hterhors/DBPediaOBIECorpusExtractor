@@ -593,7 +593,9 @@ public class GenericCorpusExtractor<T extends IOBIEThing> {
 
 			return thing;
 		} catch (Exception e) {
-			throw new IllegalStateException("Can not instantiate a new individual of the resource type: " + resource);
+			e.printStackTrace();
+			throw new IllegalStateException("Can not instantiate a new individual of the resource type: " + resource
+					+ ". Error message: " + e.getMessage());
 		}
 	}
 

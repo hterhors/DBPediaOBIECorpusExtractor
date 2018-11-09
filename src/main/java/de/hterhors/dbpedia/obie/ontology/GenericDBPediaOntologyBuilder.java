@@ -46,10 +46,10 @@ public class GenericDBPediaOntologyBuilder {
 
 	public static void main(String[] args) throws IOException {
 
-//		File file1 = new File("data/looseSelectionOutput4To6/Food.txt");
-//		File file2 = new File("data/looseSelectionOutput4To6/Film.txt");
-//		File file3 = new File("data/looseSelectionOutput4To6/Manga.txt");
-//		File file4 = new File("data/looseSelectionOutput4To6/Single.txt");
+		File file1 = new File("data/looseSelectionOutput4To6/Food.txt");
+		File file2 = new File("data/looseSelectionOutput4To6/Film.txt");
+		File file3 = new File("data/looseSelectionOutput4To6/Manga.txt");
+		File file4 = new File("data/looseSelectionOutput4To6/Single.txt");
 		File file5 = new File("data/looseSelectionOutput4To6/ArchitecturalStructure.txt");
 		File file6 = new File("data/looseSelectionOutput4To6/Dam.txt");
 
@@ -59,14 +59,14 @@ public class GenericDBPediaOntologyBuilder {
 		DBPediaInfoBoxReaderConfig dbPediaConfig = new DBPediaInfoBoxReaderConfig(
 				new File("data/infobox/ontology_properties_sorted.nt"), new File("data/infobox/properties_index.tsv"),
 				"\t");
-		
+
 		DBPediaInfoBoxReader.init(dbPediaConfig);
 		infoBoxReader = DBPediaInfoBoxReader.getInstance();
 
-//		new GenericDBPediaOntologyBuilder(dbPediaConfig, file1);
-//		new GenericDBPediaOntologyBuilder(dbPediaConfig, file2);
-//		new GenericDBPediaOntologyBuilder(dbPediaConfig, file3);
-//		new GenericDBPediaOntologyBuilder(dbPediaConfig, file4);
+		new GenericDBPediaOntologyBuilder(dbPediaConfig, file1);
+		new GenericDBPediaOntologyBuilder(dbPediaConfig, file2);
+		new GenericDBPediaOntologyBuilder(dbPediaConfig, file3);
+		new GenericDBPediaOntologyBuilder(dbPediaConfig, file4);
 		new GenericDBPediaOntologyBuilder(dbPediaConfig, file5);
 		new GenericDBPediaOntologyBuilder(dbPediaConfig, file6);
 	}
@@ -92,7 +92,7 @@ public class GenericDBPediaOntologyBuilder {
 		log.info("Print read data: ");
 		log.info("Datatype properties:");
 		resourceReader.datatypeProperties.forEach(log::info);
-		
+
 		log.info("Object properties:");
 		resourceReader.objectProperties.forEach(log::info);
 		log.info("###############################");

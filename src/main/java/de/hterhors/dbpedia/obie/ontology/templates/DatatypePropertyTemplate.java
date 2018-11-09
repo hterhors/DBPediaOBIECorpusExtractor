@@ -2,11 +2,9 @@ package de.hterhors.dbpedia.obie.ontology.templates;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URLEncoder;
 import java.nio.file.Files;
 
 import de.hterhors.dbpedia.obie.shared.OntologyStrings;
-import de.hterhors.dbpedia.obie.utils.URLUtils;
 
 public class DatatypePropertyTemplate implements IGOT {
 

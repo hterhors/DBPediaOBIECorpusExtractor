@@ -2,11 +2,7 @@ package de.hterhors.dbpedia.obie.ontology.templates;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
 import java.nio.file.Files;
-
-import de.hterhors.dbpedia.obie.utils.URLUtils;
 
 public class FlatClassTemplate implements IGOT {
 
