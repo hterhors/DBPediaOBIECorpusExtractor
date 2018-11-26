@@ -46,12 +46,13 @@ public class GenericDBPediaOntologyBuilder {
 
 	public static void main(String[] args) throws IOException {
 
-		File file1 = new File("data/looseSelectionOutput4To6/Food.txt");
-		File file2 = new File("data/looseSelectionOutput4To6/Film.txt");
-		File file3 = new File("data/looseSelectionOutput4To6/Manga.txt");
-		File file4 = new File("data/looseSelectionOutput4To6/Single.txt");
-		File file5 = new File("data/looseSelectionOutput4To6/ArchitecturalStructure.txt");
-		File file6 = new File("data/looseSelectionOutput4To6/Dam.txt");
+//		File file1 = new File("data/looseSelectionOutput4To6/Food.txt");
+//		File file2 = new File("data/looseSelectionOutput4To6/Film.txt");
+//		File file3 = new File("data/looseSelectionOutput4To6/Manga.txt");
+//		File file4 = new File("data/looseSelectionOutput4To6/Single.txt");
+//		File file5 = new File("data/looseSelectionOutput4To6/ArchitecturalStructure.txt");
+//		File file6 = new File("data/looseSelectionOutput4To6/Dam.txt");
+		File file7 = new File("data/looseSelectionOutput4To6/SoccerPlayer.txt");
 
 		rdfTypReader = new EasyNTrippleReader(new File("data/ontology_types.nt"), " ", "#");
 		rdfTypReader.read();
@@ -63,12 +64,13 @@ public class GenericDBPediaOntologyBuilder {
 		DBPediaInfoBoxReader.init(dbPediaConfig);
 		infoBoxReader = DBPediaInfoBoxReader.getInstance();
 
-		new GenericDBPediaOntologyBuilder(dbPediaConfig, file1);
-		new GenericDBPediaOntologyBuilder(dbPediaConfig, file2);
-		new GenericDBPediaOntologyBuilder(dbPediaConfig, file3);
-		new GenericDBPediaOntologyBuilder(dbPediaConfig, file4);
-		new GenericDBPediaOntologyBuilder(dbPediaConfig, file5);
-		new GenericDBPediaOntologyBuilder(dbPediaConfig, file6);
+//		new GenericDBPediaOntologyBuilder(dbPediaConfig, file1);
+//		new GenericDBPediaOntologyBuilder(dbPediaConfig, file2);
+//		new GenericDBPediaOntologyBuilder(dbPediaConfig, file3);
+//		new GenericDBPediaOntologyBuilder(dbPediaConfig, file4);
+//		new GenericDBPediaOntologyBuilder(dbPediaConfig, file5);
+//		new GenericDBPediaOntologyBuilder(dbPediaConfig, file6);
+		new GenericDBPediaOntologyBuilder(dbPediaConfig, file7);
 	}
 
 	final private Map<Property, Boolean> isFunctionalPropertyCache = new HashMap<>();

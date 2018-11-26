@@ -193,7 +193,7 @@ public class GenericCorpusExtractor<T extends IOBIEThing> {
 	 * @param testProportion        e.g. 20
 	 */
 	public void distributeInstances(final Random random, final int trainProportion, final int developmentProportion,
-			final int testProportion) {
+			final int testProportion, final int maxNumberOfInstances) {
 
 		trainingInstances = new HashMap<>();
 		developInstances = new HashMap<>();
@@ -205,26 +205,29 @@ public class GenericCorpusExtractor<T extends IOBIEThing> {
 		final int total = trainProportion + developmentProportion + testProportion;
 
 		/*
-		 * The train index based on the proportion-sum and the train proportion.
-		 */
-		final int trainIndex = (int) (((float) instances.keySet().size() / (float) total) * (float) trainProportion);
-
-		/*
-		 * The development index based on the proportion-sum and the train proportion.
-		 */
-		final int developmentIndex = trainIndex
-				+ (int) (((float) instances.keySet().size() / (float) total) * (float) developmentProportion);
-
-		/*
 		 * All keys.
 		 */
-		final List<String> keys = new ArrayList<>(instances.keySet());
+		List<String> keys = new ArrayList<>(instances.keySet());
 
 		log.info("Sort...");
 		Collections.sort(keys);
 
 		log.info("Shuffle...");
 		Collections.shuffle(keys, random);
+
+		if (maxNumberOfInstances >= 0 && keys.size()>maxNumberOfInstances)
+			keys = keys.subList(0, maxNumberOfInstances);
+
+		/*
+		 * The train index based on the proportion-sum and the train proportion.
+		 */
+		final int trainIndex = (int) (((float) keys.size() / (float) total) * (float) trainProportion);
+
+		/*
+		 * The development index based on the proportion-sum and the train proportion.
+		 */
+		final int developmentIndex = trainIndex
+				+ (int) (((float) keys.size() / (float) total) * (float) developmentProportion);
 
 		log.info("Distribute...");
 		for (int i = 0; i < trainIndex; i++) {
@@ -471,7 +474,7 @@ public class GenericCorpusExtractor<T extends IOBIEThing> {
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
-			throw new IllegalStateException("Can not set or add value.");
+			throw new IllegalStateException("Can not set or add value: " + e.getMessage());
 		}
 	}
 
@@ -491,7 +494,14 @@ public class GenericCorpusExtractor<T extends IOBIEThing> {
 			 * Get the field based on the ontology name.
 			 */
 			final Field f = getFieldByOntologyName(objectProperty.propertyName);
-
+			
+			/*
+			 * The field can be null if the ontology as described in owl was modified by
+			 * removing the specific field.
+			 */
+			if (f == null)
+				return;
+			
 			final Class<? extends IOBIEThing> genericClassType;
 
 			if (f.isAnnotationPresent(RelationTypeCollection.class)) {
@@ -514,7 +524,8 @@ public class GenericCorpusExtractor<T extends IOBIEThing> {
 
 			}
 		} catch (Exception e) {
-			throw new IllegalStateException("Can not set or add value.");
+			e.printStackTrace();
+			throw new IllegalStateException("Can not set or add value: " + e.getMessage());
 		}
 	}
 
@@ -529,11 +540,13 @@ public class GenericCorpusExtractor<T extends IOBIEThing> {
 		try {
 			IOBIEThing value = genericClassType.getAnnotation(ImplementationClass.class).get()
 					.getConstructor(String.class, String.class)
+//					.newInstance("" + mapResources(wpa.uri), wpa.surface_form);
 					.newInstance(OntologyStrings.RESOURCE_PREFIX + mapResources(wpa.uri), wpa.surface_form);
 			value.setCharacterOnset(Integer.valueOf(wpa.offset));
 
 			return value;
 		} catch (Exception e) {
+			e.printStackTrace();
 			throw new IllegalStateException(
 					"Can not build value for: " + genericClassType.getSimpleName() + " with data: " + wpa);
 		}
@@ -578,7 +591,8 @@ public class GenericCorpusExtractor<T extends IOBIEThing> {
 			final String expectedName = mainResourceWikiPage.text.split("\\.", 2)[0].split("\\(", 2)[0];
 
 			IOBIEThing thing = mainResourceClass.getConstructor(String.class, String.class)
-					.newInstance(OntologyStrings.INFOBOX_RESOURCE_NAMESPACE + resource.resourceName, expectedName);
+//					.newInstance("" + resource.resourceName, expectedName);
+			.newInstance(OntologyStrings.INFOBOX_RESOURCE_NAMESPACE + resource.resourceName, expectedName);
 
 			/*
 			 * Assuming that the name is always the first sentence
@@ -647,7 +661,7 @@ public class GenericCorpusExtractor<T extends IOBIEThing> {
 
 		propertyName = mapProperties(propertyName);
 
-		for (Field field : ReflectionUtils.getAccessibleOntologyFields(mainResourceClass)) {
+		for (Field field : ReflectionUtils.getSlots(mainResourceClass)) {
 			if (field.getAnnotation(OntologyModelContent.class).ontologyName()
 					.equals(OntologyStrings.ONTOLOGY_PROPERTY_NAMESPACE + propertyName))
 				return field;
