@@ -50,9 +50,9 @@ public class GenericDBPediaOntologyBuilder {
 //		File file2 = new File("data/looseSelectionOutput4To6/Film.txt");
 //		File file3 = new File("data/looseSelectionOutput4To6/Manga.txt");
 //		File file4 = new File("data/looseSelectionOutput4To6/Single.txt");
-//		File file5 = new File("data/looseSelectionOutput4To6/ArchitecturalStructure.txt");
+		File file5 = new File("data/looseSelectionOutput4To6/ArchitecturalStructure.txt");
 //		File file6 = new File("data/looseSelectionOutput4To6/Dam.txt");
-		File file7 = new File("data/looseSelectionOutput4To6/SoccerPlayer.txt");
+//		File file7 = new File("data/looseSelectionOutput4To6/SoccerPlayer.txt");
 
 		rdfTypReader = new EasyNTrippleReader(new File("data/ontology_types.nt"), " ", "#");
 		rdfTypReader.read();
@@ -68,9 +68,9 @@ public class GenericDBPediaOntologyBuilder {
 //		new GenericDBPediaOntologyBuilder(dbPediaConfig, file2);
 //		new GenericDBPediaOntologyBuilder(dbPediaConfig, file3);
 //		new GenericDBPediaOntologyBuilder(dbPediaConfig, file4);
-//		new GenericDBPediaOntologyBuilder(dbPediaConfig, file5);
+		new GenericDBPediaOntologyBuilder(dbPediaConfig, file5);
 //		new GenericDBPediaOntologyBuilder(dbPediaConfig, file6);
-		new GenericDBPediaOntologyBuilder(dbPediaConfig, file7);
+//		new GenericDBPediaOntologyBuilder(dbPediaConfig, file7);
 	}
 
 	final private Map<Property, Boolean> isFunctionalPropertyCache = new HashMap<>();
@@ -187,7 +187,7 @@ public class GenericDBPediaOntologyBuilder {
 
 		for (Property objectProperty : resourceReader.objectProperties) {
 
-			final boolean isFunctionalProperty = isFunctionalProperty(objectProperty);
+			final Boolean isFunctionalProperty = isFunctionalProperty(objectProperty);
 
 			for (Resource resource : resourceReader.resources) {
 
@@ -206,7 +206,8 @@ public class GenericDBPediaOntologyBuilder {
 									.get(Property.RDF_TYPE)) != null) {
 								for (IObjectValue v : rangeTypeCandidatesList) {
 
-									rangeTypeCandidates.put(v, rangeTypeCandidates.getOrDefault(v, 0) + 1);
+									rangeTypeCandidates.put(v, new Integer(
+											rangeTypeCandidates.getOrDefault(v, new Integer(0)).intValue() + 1));
 
 								}
 							}
@@ -232,6 +233,9 @@ public class GenericDBPediaOntologyBuilder {
 
 			if (rangeResourceTypeName == null)
 				rangeResourceTypeName = readNameFromConsole(" range type of property: " + objectProperty.propertyName);
+
+			if (rangeResourceTypeName.equals("--skip"))
+				continue;
 
 			selectedRangeForProperties.put(objectProperty, rangeResourceTypeName);
 
@@ -343,11 +347,11 @@ public class GenericDBPediaOntologyBuilder {
 		log.info("Process datatype properties...");
 		int counter = 0;
 		for (Property objectProperty : resourceReader.datatypeProperties) {
-			final boolean isFunctionalProperty = isFunctionalProperty(objectProperty);
+			final Boolean isFunctionalProperty = isFunctionalProperty(objectProperty);
 			final String propertyName = OntologyStrings.DBPEDIA_ONTOLOGY_NAMESPACE
 					+ URLUtils.encode(objectProperty.propertyName);
-			datatypePropertyTemplates.add(new DatatypePropertyTemplate(isFunctionalProperty, propertyName,
-					OntologyStrings.DBPEDIA_ONTOLOGY_NAMESPACE + domainName));
+			datatypePropertyTemplates.add(new DatatypePropertyTemplate(isFunctionalProperty.booleanValue(),
+					propertyName, OntologyStrings.DBPEDIA_ONTOLOGY_NAMESPACE + domainName));
 			counter++;
 		}
 		log.info("Number of datatype properties: " + counter);
@@ -448,7 +452,7 @@ public class GenericDBPediaOntologyBuilder {
 	 * @param property
 	 * @return true if the property is functional.
 	 */
-	private boolean isFunctionalProperty(Property property) {
+	private Boolean isFunctionalProperty(Property property) {
 
 		if (!isFunctionalPropertyCache.containsKey(property)) {
 			isFunctionalPropertyCache.put(property, computeIsFunctionalProperty(property));
