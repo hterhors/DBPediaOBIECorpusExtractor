@@ -32,7 +32,9 @@ import de.hterhors.dbpedia.obie.wikipage.WikiPageAnnotation;
 import de.hterhors.dbpedia.obie.wikipage.WikiPageReader;
 import de.hterhors.dbpedia.obie.wikipage.WikiPageReaderConfig;
 import de.hterhors.obie.core.ontology.AbstractOntologyEnvironment;
+import de.hterhors.obie.core.ontology.InvestigationRestriction;
 import de.hterhors.obie.core.ontology.OntologyInitializer;
+import de.hterhors.obie.core.ontology.ReflectionUtils;
 import de.hterhors.obie.core.ontology.annotations.DirectInterface;
 import de.hterhors.obie.core.ontology.annotations.ImplementationClass;
 import de.hterhors.obie.core.ontology.annotations.OntologyModelContent;
@@ -42,7 +44,6 @@ import de.hterhors.obie.core.tools.corpus.OBIECorpus;
 import de.hterhors.obie.core.tools.corpus.OBIECorpus.Instance;
 import de.hterhors.obie.ml.dtinterpreter.IDatatypeInterpretation;
 import de.hterhors.obie.ml.dtinterpreter.IDatatypeInterpreter;
-import de.hterhors.obie.ml.utils.ReflectionUtils;
 
 /**
  * The GenericCorpusExtractor extracts a corpus from wikipedia and dbpedia given
@@ -215,7 +216,7 @@ public class GenericCorpusExtractor<T extends IOBIEThing> {
 		log.info("Shuffle...");
 		Collections.shuffle(keys, random);
 
-		if (maxNumberOfInstances >= 0 && keys.size()>maxNumberOfInstances)
+		if (maxNumberOfInstances >= 0 && keys.size() > maxNumberOfInstances)
 			keys = keys.subList(0, maxNumberOfInstances);
 
 		/*
@@ -304,110 +305,126 @@ public class GenericCorpusExtractor<T extends IOBIEThing> {
 
 		int counter = 0;
 		for (Resource mainResource : mainResourceReader.resources) {
-			log.info("Build: " + mainResource + " " + ++counter + "/" + numberOfResources);
+			try {
+				log.info("Build: " + mainResource + " " + ++counter + "/" + numberOfResources);
 
-			log.debug("Read Wikipedia article...");
-			WikiPage mainResourceWikiPage = wikiPageReader.readWikiPage(mainResource);
-			final String docContent = mainResourceWikiPage.text;
+				/**
+				 * TODO: How to read URLS correctly?
+				 * 
+				 * Answere: no need to if namespace is stored as well.
+				 */
+//				if (mainResource.resourceName.contains("/")) {
+//					log.info("Can not process resource! Invalid resource name!");
+//					continue;
+//				}
 
-			log.debug("Read infobox data...");
-			DBPediaInfoBox mainResourceInfoBox = infoBoxReader.readInfoBox(mainResource);
+				log.debug("Read Wikipedia article...");
+				WikiPage mainResourceWikiPage = wikiPageReader.readWikiPage(mainResource);
+				final String docContent = mainResourceWikiPage.text;
 
-			/*
-			 * Create a new thing of type main resource.
-			 */
-			log.debug("Create new indiviudal...");
-			final IOBIEThing thing = newMainIndividual(mainResource, mainResourceWikiPage);
-
-			/*
-			 * For all object properties...
-			 */
-			for (Property objectProperty : mainResourceReader.objectProperties) {
-				log.debug("Add data for object property: " + objectProperty);
-
-				if (mainResourceInfoBox.resourceAnnotations.containsKey(objectProperty)) {
-
-					/*
-					 * Add or set values
-					 */
-					for (Iterator<Resource> iterator = mainResourceInfoBox.resourceAnnotations.get(objectProperty)
-							.iterator(); iterator.hasNext();) {
-
-						final Resource slotFillerResource = new Resource(URLUtils.decode(iterator.next().resourceName));
-
-						final WikiPageAnnotation wpa = mainResourceWikiPage.annotations.get(slotFillerResource);
-
-						if (wpa == null) {
-							log.debug("Wikipage does not contain data for object property: " + objectProperty);
-							continue;
-						}
-
-						setOrAddClassValue(thing, objectProperty, wpa);
-					}
-
-				} else {
-					log.debug("Infobox does not contain data for object property: " + objectProperty);
-				}
-			}
-
-			/*
-			 * For all datatype properties...
-			 */
-			for (Property datatypeProperty : mainResourceReader.datatypeProperties) {
-				log.debug("Add data for datatype property: " + datatypeProperty);
-
-				if (mainResourceInfoBox.literalAnnotations.containsKey(datatypeProperty)) {
-
-					/*
-					 * Add or set values
-					 */
-					for (Iterator<Literal> iterator = mainResourceInfoBox.literalAnnotations.get(datatypeProperty)
-							.iterator(); iterator.hasNext();) {
-
-						final String surfaceForm = iterator.next().literal;
-
-						/**
-						 * TODO: Taking first occurrence, may be wrong.
-						 */
-
-						Matcher m = InstanceUtils.getLiteral(docContent, surfaceForm);
-
-						if (m == null) {
-							log.debug("Wikipage does not contain data for datatype property: " + datatypeProperty);
-							continue;
-						}
-
-						final int onset = m.start();
-
-						setOrAddDatatypeValue(thing, datatypeProperty, surfaceForm, onset);
-					}
-				} else {
-					log.debug("Infobox does not contain data for datatype property: " + datatypeProperty);
-				}
-			}
-
-			final String docName = mainResourceWikiPage.resource.resourceName;
-
-			/*
-			 * Check for restrictions.
-			 */
-			if (instanceRestrictionFilter.applyFilter(thing)) {
-				final Map<Class<? extends IOBIEThing>, List<IOBIEThing>> annotations = new HashMap<>();
-				annotations.put(mainResourceInterface, new ArrayList<>());
+				log.debug("Read infobox data...");
+				DBPediaInfoBox mainResourceInfoBox = infoBoxReader.readInfoBox(mainResource);
 
 				/*
-				 * In this setting there is always just one single structured-annotation per
-				 * instance.
+				 * Create a new thing of type main resource.
 				 */
-				annotations.get(mainResourceInterface).add(thing);
+				log.debug("Create new indiviudal...");
+				final IOBIEThing thing = newMainIndividual(mainResource, mainResourceWikiPage);
 
-				instances.put(docName, new Instance(docName, docContent, annotations));
+				/*
+				 * For all object properties...
+				 */
+				for (Property objectProperty : mainResourceReader.objectProperties) {
+					log.debug("Add data for object property: " + objectProperty);
 
-				log.info("Add instance to corpus: " + docName);
-			} else {
-				log.info("Instance violates restriction, remove instance from corpus: " + docName);
+					if (mainResourceInfoBox.resourceAnnotations.containsKey(objectProperty)) {
+
+						/*
+						 * Add or set values
+						 */
+						for (Iterator<Resource> iterator = mainResourceInfoBox.resourceAnnotations.get(objectProperty)
+								.iterator(); iterator.hasNext();) {
+
+							final Resource slotFillerResource = new Resource(
+									URLUtils.decode(iterator.next().resourceName));
+
+							final WikiPageAnnotation wpa = mainResourceWikiPage.annotations.get(slotFillerResource);
+
+							if (wpa == null) {
+								log.debug("Wikipage does not contain data for object property: " + objectProperty);
+								continue;
+							}
+
+							setOrAddClassValue(thing, objectProperty, wpa);
+						}
+
+					} else {
+						log.debug("Infobox does not contain data for object property: " + objectProperty);
+					}
+				}
+
+				/*
+				 * For all datatype properties...
+				 */
+				for (Property datatypeProperty : mainResourceReader.datatypeProperties) {
+					log.debug("Add data for datatype property: " + datatypeProperty);
+
+					if (mainResourceInfoBox.literalAnnotations.containsKey(datatypeProperty)) {
+
+						/*
+						 * Add or set values
+						 */
+						for (Iterator<Literal> iterator = mainResourceInfoBox.literalAnnotations.get(datatypeProperty)
+								.iterator(); iterator.hasNext();) {
+
+							final String surfaceForm = iterator.next().literal;
+
+							/**
+							 * TODO: Taking first occurrence, may be wrong.
+							 */
+
+							Matcher m = InstanceUtils.getLiteral(docContent, surfaceForm);
+
+							if (m == null) {
+								log.debug("Wikipage does not contain data for datatype property: " + datatypeProperty);
+								continue;
+							}
+
+							final int onset = m.start();
+
+							setOrAddDatatypeValue(thing, datatypeProperty, surfaceForm, onset);
+						}
+					} else {
+						log.debug("Infobox does not contain data for datatype property: " + datatypeProperty);
+					}
+				}
+
+				final String docName = mainResourceWikiPage.resource.resourceName;
+
+				/*
+				 * Check for restrictions.
+				 */
+				if (instanceRestrictionFilter.applyFilter(thing)) {
+					final Map<Class<? extends IOBIEThing>, List<IOBIEThing>> annotations = new HashMap<>();
+					annotations.put(mainResourceInterface, new ArrayList<>());
+
+					/*
+					 * In this setting there is always just one single structured-annotation per
+					 * instance.
+					 */
+					annotations.get(mainResourceInterface).add(thing);
+
+					instances.put(docName, new Instance(docName, docContent, annotations));
+
+					log.info("Add instance to corpus: " + docName);
+				} else {
+					log.info("Instance violates restriction, remove instance from corpus: " + docName);
+				}
+
+			} catch (Exception e) {
+				e.printStackTrace();
+				log.error("Can not process resource... Makes use of invalid resource names.");
 			}
-
 		}
 		log.info("Number of training instances: " + instances.size());
 
@@ -494,26 +511,26 @@ public class GenericCorpusExtractor<T extends IOBIEThing> {
 			 * Get the field based on the ontology name.
 			 */
 			final Field f = getFieldByOntologyName(objectProperty.propertyName);
-			
+
 			/*
 			 * The field can be null if the ontology as described in owl was modified by
 			 * removing the specific field.
 			 */
 			if (f == null)
 				return;
-			
+
 			final Class<? extends IOBIEThing> genericClassType;
 
 			if (f.isAnnotationPresent(RelationTypeCollection.class)) {
 				genericClassType = (Class<? extends IOBIEThing>) ((ParameterizedType) f.getGenericType())
 						.getActualTypeArguments()[0];
-				final IOBIEThing value = buildClassValue(genericClassType, wpa);
+				final IOBIEThing value = buildClassValue(genericClassType, wpa, f);
 
 				((List<IOBIEThing>) f.get(thing)).add(value);
 			} else {
 
 				genericClassType = (Class<? extends IOBIEThing>) f.getType();
-				final IOBIEThing value = buildClassValue(genericClassType, wpa);
+				final IOBIEThing value = buildClassValue(genericClassType, wpa, f);
 
 				if (f.get(thing) != null) {
 					log.error(
@@ -536,12 +553,13 @@ public class GenericCorpusExtractor<T extends IOBIEThing> {
 	 * @param wpa              the value container
 	 * @return a new thing filled with information of the wpa-container.
 	 */
-	private IOBIEThing buildClassValue(Class<? extends IOBIEThing> genericClassType, WikiPageAnnotation wpa) {
+	private IOBIEThing buildClassValue(Class<? extends IOBIEThing> genericClassType, WikiPageAnnotation wpa,
+			Field slot) {
 		try {
 			IOBIEThing value = genericClassType.getAnnotation(ImplementationClass.class).get()
-					.getConstructor(String.class, String.class)
+					.getConstructor(String.class, InvestigationRestriction.class,String.class)
 //					.newInstance("" + mapResources(wpa.uri), wpa.surface_form);
-					.newInstance(OntologyStrings.RESOURCE_PREFIX + mapResources(wpa.uri), wpa.surface_form);
+					.newInstance(OntologyStrings.RESOURCE_PREFIX + mapResources(wpa.uri, slot), null,wpa.surface_form);
 			value.setCharacterOnset(Integer.valueOf(wpa.offset));
 
 			return value;
@@ -590,14 +608,14 @@ public class GenericCorpusExtractor<T extends IOBIEThing> {
 			 */
 			final String expectedName = mainResourceWikiPage.text.split("\\.", 2)[0].split("\\(", 2)[0];
 
-			IOBIEThing thing = mainResourceClass.getConstructor(String.class, String.class)
+			IOBIEThing thing = mainResourceClass.getConstructor(String.class,InvestigationRestriction.class, String.class)
 //					.newInstance("" + resource.resourceName, expectedName);
-			.newInstance(OntologyStrings.INFOBOX_RESOURCE_NAMESPACE + resource.resourceName, expectedName);
+					.newInstance(OntologyStrings.INFOBOX_RESOURCE_NAMESPACE + resource.resourceName,null, expectedName);
 
 			/*
 			 * Assuming that the name is always the first sentence
 			 */
-			final Integer onset = 0;
+			final Integer onset = new Integer(0);
 
 			thing.setCharacterOnset(onset);
 			/*
@@ -629,9 +647,10 @@ public class GenericCorpusExtractor<T extends IOBIEThing> {
 	 * Per default this method returns always the input.
 	 * 
 	 * @param resourceName
+	 * @param slot         TODO
 	 * @return
 	 */
-	public String mapResources(String resourceName) {
+	public String mapResources(String resourceName, Field slot) {
 		return resourceName;
 	}
 
